@@ -2,9 +2,9 @@
 // @name Faction Chain Tracker
 // @match https://www.torn.com/index.php*
 // @grant none
-// @version Alpha-v2
+// @version Alpha-v3
 // @author Kdragondev [3382032]
-// @description 08/11/2024 4:36 PM
+// @description 08/11/2024 8:22 PM
 // ==/UserScript==
 
 /* =============================================================================
@@ -42,29 +42,67 @@ function setDisplay(_display) {
 
     // Check if the window was successfully created
     if (displayWindow) {
+        // Convert JSON to JavaScript object
+        let dataObject = JSON.parse(_display);
+
+        // Create a list of items to display
+        let listItems = '';
+        for (let key in dataObject) {
+            if (dataObject.hasOwnProperty(key)) {
+                listItems += `<li><strong>${key}:</strong> ${dataObject[key]}</li>`;
+            }
+        }
+
         // Set the document content of the new window
         displayWindow.document.write(`
             <html>
                 <head>
                     <title>Chain Data</title>
                     <style>
+                        body {
+                            background-color: #2E2E2E; /* Dark Gray Background */
+                            color: #D3D3D3; /* Light Gray Text */
+                            font-family: Arial, sans-serif;
+                        }
+                        h1 {
+                            color: #00BFFF; /* Electric Blue */
+                        }
+                        ul {
+                            color: #FFFFFF; /* White Text */
+                        }
                         button {
-                            margin-top: 10px;
-                            padding: 5px 10px;
+                            background-color: #39FF14; /* Neon Green */
+                            color: #000000; /* Black Text */
+                            border: none;
+                            padding: 10px 20px;
                             font-size: 16px;
+                            cursor: pointer;
+                            border-radius: 5px;
+                        }
+                        button:hover {
+                            background-color: #00FFFF; /* Bright Cyan */
                         }
                     </style>
                 </head>
                 <body>
                     <h1>Chain Information</h1>
-                    <p id="chainData">${_display}</p>
+                    <ul id="chainData">
+                        ${listItems}
+                    </ul>
                     <button id="refreshButton">Refresh</button>
 
                     <script>
                         // Refresh button just calls the getChain() function
                         document.getElementById('refreshButton').onclick = async function() {
                             let updatedChain = await window.opener.getChain();
-                            document.getElementById('chainData').innerText = JSON.stringify(updatedChain);
+                            // Update the list with new data
+                            let updatedListItems = '';
+                            for (let key in updatedChain) {
+                                if (updatedChain.hasOwnProperty(key)) {
+                                    updatedListItems += '<li><strong>' + key + ':</strong> ' + updatedChain[key] + '</li>';
+                                }
+                            }
+                            document.getElementById('chainData').innerHTML = updatedListItems;
                         };
                     </script>
                 </body>
@@ -76,20 +114,33 @@ function setDisplay(_display) {
         // Handle the error or provide a fallback
         console.error("Failed to open new window. Displaying data within the current window instead.");
         document.body.innerHTML += `
-            <div>
-                <h1>Chain Information</h1>
-                <p id="chainData">${_display}</p>
-                <button id="refreshButton">Refresh</button>
+            <div style="background-color: #2E2E2E; color: #D3D3D3; font-family: Arial, sans-serif; padding: 20px;">
+                <h1 style="color: #00BFFF;">Chain Information</h1>
+                <ul id="chainData">
+                    ${listItems}
+                </ul>
+                <button id="refreshButton" style="
+                    background-color: #39FF14; color: #000000; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px;">
+                    Refresh
+                </button>
             </div>
         `;
 
         // Attach the refresh function to the button in the current window
         document.getElementById('refreshButton').onclick = async function() {
             let updatedChain = await getChain();
-            document.getElementById('chainData').innerText = JSON.stringify(updatedChain);
+            // Update the list with new data
+            let updatedListItems = '';
+            for (let key in updatedChain) {
+                if (updatedChain.hasOwnProperty(key)) {
+                    updatedListItems += '<li><strong>' + key + ':</strong> ' + updatedChain[key] + '</li>';
+                }
+            }
+            document.getElementById('chainData').innerHTML = updatedListItems;
         };
     }
 }
+
 
 
 /* =============================================================================
